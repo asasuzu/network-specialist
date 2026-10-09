@@ -163,28 +163,30 @@
     }
     const none = state.cards.length - known - unknown;
     $('#stats').innerHTML =
-      `<span class="stat known">知ってた <b>${known}</b></span>` +
-      `<span class="stat unknown">知らなかった <b>${unknown}</b></span>` +
-      `<span class="stat">未判定 <b>${none}</b></span>`;
+      `<span>知ってた <b>${known}</b></span>` +
+      `<span class="unknown">知らなかった <b>${unknown}</b></span>` +
+      `<span>未判定 <b>${none}</b></span>`;
   }
 
   function metaHtml(card, { withDeck = true } = {}) {
     const lv = card.meta['段階'];
     const src = card.meta['出典'];
     const mark = markOf(card);
-    return `<div class="meta">` +
-      (lv ? `<span class="badge lv-${esc(lv)}">${esc(lv)}</span>` : '') +
-      (withDeck ? `<span class="badge">${esc(card.deck.title)}</span>` : '') +
-      (src ? `<span class="badge">${esc(src)}</span>` : '') +
-      (mark === 'known' ? '<span class="badge mark-known">知ってた</span>' : '') +
-      (mark === 'unknown' ? '<span class="badge mark-unknown">知らなかった</span>' : '') +
-      `</div>`;
+    return `<p class="meta">` +
+      (lv ? `<span class="lv lv-${esc(lv)}">【${esc(lv)}】</span>` : '') +
+      (withDeck ? `<span>${esc(card.deck.title)}</span>` : '') +
+      (src ? `<span>${esc(src)}</span>` : '') +
+      (mark === 'known' ? '<span class="done">済：知ってた</span>' : '') +
+      (mark === 'unknown' ? '<span class="done unknown">済：知らなかった</span>' : '') +
+      `</p>`;
   }
 
   function honbunHtml(card) {
     const h = card.meta['本文'];
-    return h ? `<div class="honbun">本文 ${esc(h)}：${esc(HONBUN[h] || '')}</div>` : '';
+    return h ? `<div class="honbun">本文 <b>${esc(h)}</b> ${esc(HONBUN[h] || '')}</div>` : '';
   }
+
+  const answerHtml = (card) => `<div class="answer"><p class="answer-label">答え</p><div class="md">${md(card.body)}</div></div>`;
 
   function judgeHtml(card) {
     const m = markOf(card);
@@ -192,11 +194,6 @@
       `<button type="button" class="unknown" data-mark="unknown" data-id="${card.id}" aria-pressed="${m === 'unknown'}">知らなかった</button>` +
       `<button type="button" class="known" data-mark="known" data-id="${card.id}" aria-pressed="${m === 'known'}">知ってた</button>` +
       `</div>`;
-  }
-
-  function cardClass(card) {
-    const m = markOf(card);
-    return 'card' + (m === 'known' ? ' is-known' : m === 'unknown' ? ' is-unknown' : '');
   }
 
   function render() {
@@ -215,13 +212,13 @@
     const pct = ((state.index + 1) / total) * 100;
     view.innerHTML =
       `<div class="counter"><span>${state.index + 1} / ${total}</span><span class="progress"><i style="width:${pct}%"></i></span></div>` +
-      `<article class="${cardClass(card)}">` +
+      `<article class="card">` +
         metaHtml(card) +
         (card.group ? `<div class="group">${esc(card.group)}</div>` : '') +
         `<h2 class="q">${esc(card.q)}</h2>` +
         honbunHtml(card) +
         (state.revealed
-          ? `<div class="answer md">${md(card.body)}</div>` + judgeHtml(card)
+          ? answerHtml(card) + judgeHtml(card)
           : `<button type="button" class="reveal" id="reveal">答えを見る</button>`) +
       `</article>` +
       `<div class="nav">` +
@@ -248,11 +245,11 @@
         html += `<h3 class="group-title">${esc(card.group)}</h3>`;
         lastGroup = card.group;
       }
-      html += `<article class="${cardClass(card)}">` +
+      html += `<article class="card">` +
         metaHtml(card, { withDeck: shuffle }) +
         `<h3 class="q">${esc(card.q)}</h3>` +
         honbunHtml(card) +
-        `<div class="answer md">${md(card.body)}</div>` +
+        answerHtml(card) +
         judgeHtml(card) +
         `</article>`;
     }
