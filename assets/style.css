@@ -52,7 +52,7 @@ button { cursor: pointer; }
 .chip .n { margin-left: 3px; font-size: .78rem; font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 .row { display: flex; gap: 8px 16px; align-items: center; flex-wrap: wrap; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
-.row-end { display: flex; gap: 14px; align-items: center; }
+.row-end { display: flex; gap: 8px 14px; align-items: center; flex-wrap: wrap; }
 select { border: 1px solid var(--rule); background: var(--paper); border-radius: 2px; padding: 3px 6px; font-size: .84rem; }
 .toggle { display: inline-flex; gap: 5px; align-items: center; font-size: .84rem; color: var(--ink-2); white-space: nowrap; }
 .toggle input { accent-color: var(--ink); }

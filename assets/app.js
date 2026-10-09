@@ -26,7 +26,7 @@
     decks: [],
     cards: [],
     marks: store.get(MARKS_KEY, {}),
-    prefs: Object.assign({ mode: 'test', deck: 'all', level: 'all', status: 'all', shuffle: false }, store.get(PREFS_KEY, {})),
+    prefs: Object.assign({ mode: 'test', deck: 'all', level: 'all', exam: 'all', status: 'all', shuffle: false }, store.get(PREFS_KEY, {})),
     list: [],
     index: 0,
     revealed: false,
@@ -106,10 +106,14 @@
 
   const markOf = (card) => state.marks[card.id] || 'none';
 
+  // 出典（例：「R7 午後Ⅰ 問2 ／ R5 午後Ⅰ 問1」）に出てくる試験の一覧
+  const examsOf = (card) => (card.meta['出典'] || '').match(/R\d+ 午後[ⅠⅡ]/g) || [];
+
   function matches(card) {
     const p = state.prefs;
     if (p.deck !== 'all' && card.deck.file !== p.deck) return false;
     if (p.level !== 'all' && card.meta['段階'] !== p.level) return false;
+    if (p.exam !== 'all' && !examsOf(card).includes(p.exam)) return false;
     if (p.status !== 'all' && markOf(card) !== p.status) return false;
     return true;
   }
@@ -150,6 +154,12 @@
       state.decks.map((d) => chip(d.title, d.file, p.deck === d.file, d.cards.length)).join('');
     $('#levelChips').innerHTML = chip('すべて', 'all', p.level === 'all') +
       LEVELS.map((l) => chip(l, l, p.level === l)).join('');
+    const exams = [...new Set(state.cards.flatMap(examsOf))].sort((a, b) =>
+      (parseInt(b.slice(1), 10) - parseInt(a.slice(1), 10)) || a.localeCompare(b));
+    if (p.exam !== 'all' && !exams.includes(p.exam)) p.exam = 'all';
+    $('#examFilter').innerHTML = '<option value="all">全年度</option>' +
+      exams.map((e) => `<option value="${esc(e)}">${esc(e)}</option>`).join('');
+    $('#examFilter').value = p.exam;
     $('#statusFilter').value = p.status;
     $('#shuffle').checked = p.shuffle;
   }
@@ -346,6 +356,11 @@
     if (!b) return;
     state.prefs.level = b.dataset.value;
     savePrefs(); renderControls(); rebuild();
+  });
+
+  $('#examFilter').addEventListener('change', (e) => {
+    state.prefs.exam = e.target.value;
+    savePrefs(); rebuild();
   });
 
   $('#statusFilter').addEventListener('change', (e) => {

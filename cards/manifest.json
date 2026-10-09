@@ -1,9 +1,15 @@
 {
   "decks": [
     "routing.md",
-    "lan-ip.md",
+    "vpn.md",
     "web.md",
+    "auth.md",
     "proxy-security.md",
+    "lan-ip.md",
+    "ops.md",
+    "wireless.md",
+    "dc.md",
+    "other.md",
     "ports.md"
   ]
 }
