@@ -66,7 +66,7 @@
       }
       if (cur) {
         if (cur.inMeta) {
-          const mm = line.match(/^-\s*(段階|出典|本文)[:：]\s*(.+)$/);
+          const mm = line.match(/^-\s*(段階|出典|本文|状況)[:：]\s*(.+)$/);
           if (mm) { cur.meta[mm[1]] = mm[2].trim(); continue; }
           if (line.trim() === '') continue;
           cur.inMeta = false;
@@ -186,6 +186,12 @@
     return h ? `<div class="honbun">本文 <b>${esc(h)}</b> ${esc(HONBUN[h] || '')}</div>` : '';
   }
 
+  // 本文を読まなくても場面がわかるように、問いの前に問題の状況を出す
+  function situationHtml(card) {
+    const s = card.meta['状況'];
+    return s ? `<div class="situation"><p class="situation-label">問題の状況</p><p>${esc(s)}</p></div>` : '';
+  }
+
   const answerHtml = (card) => `<div class="answer"><p class="answer-label">答え</p><div class="md">${md(card.body)}</div></div>`;
 
   function judgeHtml(card) {
@@ -215,6 +221,7 @@
       `<article class="card">` +
         metaHtml(card) +
         (card.group ? `<div class="group">${esc(card.group)}</div>` : '') +
+        situationHtml(card) +
         `<h2 class="q">${esc(card.q)}</h2>` +
         honbunHtml(card) +
         (state.revealed
@@ -247,6 +254,7 @@
       }
       html += `<article class="card">` +
         metaHtml(card, { withDeck: shuffle }) +
+        situationHtml(card) +
         `<h3 class="q">${esc(card.q)}</h3>` +
         honbunHtml(card) +
         answerHtml(card) +

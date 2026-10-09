@@ -132,3 +132,8 @@ select { border: 1px solid var(--rule); background: var(--paper); border-radius:
 
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 16px); background: var(--ink); color: #fff; padding: 8px 16px; border-radius: 2px; font-size: .86rem; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100% - 32px); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* 問題の状況 */
+.situation { margin-top: 12px; background: var(--shade); padding: 10px 12px; font-size: .86rem; line-height: 1.75; color: var(--ink-2); }
+.situation p { margin: 0; }
+.situation .situation-label { font-size: .74rem; font-weight: 700; color: var(--ink); letter-spacing: .08em; margin-bottom: 2px; }
