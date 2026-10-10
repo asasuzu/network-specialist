@@ -7,6 +7,12 @@
     '○': '本文を少し確認すれば解ける',
     '△': '本文・図の読み取りが必要',
   };
+  const NO_EXAM = 'none';
+  const GROUPS = {
+    exams: { el: '#examGroup', all: '全年度', short: '年度' },
+    decks: { el: '#deckGroup', all: 'すべての分野', short: '分野' },
+    levels: { el: '#levelGroup', all: 'すべての段階', short: '段階' },
+  };
   const MARKS_KEY = 'nw-cards:marks';
   const PREFS_KEY = 'nw-cards:prefs';
 
@@ -26,11 +32,25 @@
     decks: [],
     cards: [],
     marks: store.get(MARKS_KEY, {}),
-    prefs: Object.assign({ mode: 'test', deck: 'all', level: 'all', exam: 'all', status: 'all', shuffle: false }, store.get(PREFS_KEY, {})),
+    prefs: loadPrefs(),
+    opts: { exams: [], decks: [], levels: [] },
+    sel: { exams: new Set(), decks: new Set(), levels: new Set() },
     list: [],
     index: 0,
     revealed: false,
   };
+
+  // 選択は「全部選んでいれば null」で保存する（カードの年度や分野が増えても、自動で選ばれた状態になる）
+  function loadPrefs() {
+    const p = Object.assign({ mode: 'test', exams: null, decks: null, levels: null, status: 'all', shuffle: false, filtersOpen: true },
+      store.get(PREFS_KEY, {}));
+    // 以前の1つだけ選ぶ形式から移す
+    if (p.deck && p.deck !== 'all') p.decks = [p.deck];
+    if (p.level && p.level !== 'all') p.levels = [p.level];
+    if (p.exam && p.exam !== 'all') p.exams = [p.exam];
+    delete p.deck; delete p.level; delete p.exam;
+    return p;
+  }
 
   const $ = (sel) => document.querySelector(sel);
   const view = $('#view');
@@ -97,7 +117,7 @@
       view.innerHTML = '<p class="error">カードを読み込めませんでした。<br>ファイルを直接開いている場合は、Webサーバ経由（GitHub Pages など）で開いてください。</p>';
       return;
     }
-    if (state.prefs.deck !== 'all' && !state.decks.some((d) => d.file === state.prefs.deck)) state.prefs.deck = 'all';
+    buildOptions();
     renderControls();
     rebuild();
   }
@@ -109,12 +129,29 @@
   // 出典（例：「R7 午後Ⅰ 問2 ／ R5 午後Ⅰ 問1」）に出てくる試験の一覧
   const examsOf = (card) => (card.meta['出典'] || '').match(/R\d+ 午後[ⅠⅡ]/g) || [];
 
+  function buildOptions() {
+    const count = (fn) => state.cards.filter(fn).length;
+    const exams = [...new Set(state.cards.flatMap(examsOf))].sort((a, b) =>
+      (parseInt(b.slice(1), 10) - parseInt(a.slice(1), 10)) || a.localeCompare(b));
+    state.opts.exams = exams.map((e) => ({ value: e, label: e, count: count((c) => examsOf(c).includes(e)) }));
+    const noExam = count((c) => !examsOf(c).length);
+    if (noExam) state.opts.exams.push({ value: NO_EXAM, label: '年度なし（共通）', count: noExam });
+    state.opts.decks = state.decks.map((d) => ({ value: d.file, label: d.title, count: d.cards.length }));
+    state.opts.levels = LEVELS.map((l) => ({ value: l, label: l, count: count((c) => c.meta['段階'] === l) }));
+    for (const g of Object.keys(GROUPS)) {
+      const saved = state.prefs[g];
+      const values = state.opts[g].map((o) => o.value);
+      state.sel[g] = new Set(saved ? saved.filter((v) => values.includes(v)) : values);
+    }
+  }
+
   function matches(card) {
-    const p = state.prefs;
-    if (p.deck !== 'all' && card.deck.file !== p.deck) return false;
-    if (p.level !== 'all' && card.meta['段階'] !== p.level) return false;
-    if (p.exam !== 'all' && !examsOf(card).includes(p.exam)) return false;
-    if (p.status !== 'all' && markOf(card) !== p.status) return false;
+    const { sel } = state;
+    if (!sel.decks.has(card.deck.file)) return false;
+    if (!sel.levels.has(card.meta['段階'])) return false;
+    const ex = examsOf(card);
+    if (ex.length ? !ex.some((e) => sel.exams.has(e)) : !sel.exams.has(NO_EXAM)) return false;
+    if (state.prefs.status !== 'all' && markOf(card) !== state.prefs.status) return false;
     return true;
   }
 
@@ -140,26 +177,42 @@
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const md = (s) => (window.marked ? window.marked.parse(s, { gfm: true }) : '<pre>' + esc(s) + '</pre>');
 
-  function savePrefs() { store.set(PREFS_KEY, state.prefs); }
+  function savePrefs() {
+    for (const g of Object.keys(GROUPS)) {
+      state.prefs[g] = state.sel[g].size === state.opts[g].length ? null : [...state.sel[g]];
+    }
+    store.set(PREFS_KEY, state.prefs);
+  }
 
-  function chip(label, value, pressed, count) {
-    const n = count == null ? '' : `<span class="n">${count}</span>`;
-    return `<button type="button" class="chip" data-value="${esc(value)}" aria-pressed="${pressed}">${esc(label)}${n}</button>`;
+  // 親（全年度など）と子のチェックボックス。親は子が全部選ばれているときだけチェック、一部なら「−」
+  function renderFilterGroup(g) {
+    const box = $(GROUPS[g].el);
+    const sel = state.sel[g];
+    const opts = state.opts[g];
+    box.innerHTML =
+      `<label class="opt opt-all"><input type="checkbox" data-group="${g}" data-all> ${esc(GROUPS[g].all)}</label>` +
+      opts.map((o) => `<label class="opt"><input type="checkbox" data-group="${g}" value="${esc(o.value)}"${sel.has(o.value) ? ' checked' : ''}>` +
+        ` <span class="opt-label">${esc(o.label)}</span><span class="n">${o.count}</span></label>`).join('');
+    const all = box.querySelector('[data-all]');
+    all.checked = sel.size === opts.length;
+    all.indeterminate = sel.size > 0 && sel.size < opts.length;
+  }
+
+  function describe(g) {
+    const sel = state.sel[g];
+    const opts = state.opts[g];
+    if (sel.size === opts.length) return GROUPS[g].all;
+    if (!sel.size) return `${GROUPS[g].short}なし`;
+    const labels = opts.filter((o) => sel.has(o.value)).map((o) => (o.value === NO_EXAM ? '年度なし' : o.label));
+    return labels.length <= 2 ? labels.join('・') : `${GROUPS[g].short}${labels.length}件`;
   }
 
   function renderControls() {
     const p = state.prefs;
     document.querySelectorAll('.seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === p.mode)));
-    $('#deckChips').innerHTML = chip('すべての分野', 'all', p.deck === 'all', state.cards.length) +
-      state.decks.map((d) => chip(d.title, d.file, p.deck === d.file, d.cards.length)).join('');
-    $('#levelChips').innerHTML = chip('すべて', 'all', p.level === 'all') +
-      LEVELS.map((l) => chip(l, l, p.level === l)).join('');
-    const exams = [...new Set(state.cards.flatMap(examsOf))].sort((a, b) =>
-      (parseInt(b.slice(1), 10) - parseInt(a.slice(1), 10)) || a.localeCompare(b));
-    if (p.exam !== 'all' && !exams.includes(p.exam)) p.exam = 'all';
-    $('#examFilter').innerHTML = '<option value="all">全年度</option>' +
-      exams.map((e) => `<option value="${esc(e)}">${esc(e)}</option>`).join('');
-    $('#examFilter').value = p.exam;
+    Object.keys(GROUPS).forEach(renderFilterGroup);
+    $('#filterDesc').textContent = Object.keys(GROUPS).map(describe).join(' ／ ');
+    $('#filters').open = p.filtersOpen;
     $('#statusFilter').value = p.status;
     $('#shuffle').checked = p.shuffle;
   }
@@ -214,8 +267,12 @@
 
   function render() {
     renderStats();
+    $('#selCount').innerHTML = `<b>${state.list.length}</b>問 <span>／ ${state.cards.length}</span>`;
     if (!state.list.length) {
-      view.innerHTML = '<p class="empty">この条件のカードはありません。</p>';
+      const empty = Object.keys(GROUPS).filter((g) => !state.sel[g].size).map((g) => GROUPS[g].short);
+      view.innerHTML = empty.length
+        ? `<p class="empty">${empty.join('・')}を1つ以上選んでください。</p>`
+        : '<p class="empty">この条件のカードはありません。</p>';
       return;
     }
     if (state.prefs.mode === 'read') renderRead();
@@ -344,23 +401,23 @@
     rebuild();
   });
 
-  $('#deckChips').addEventListener('click', (e) => {
-    const b = e.target.closest('.chip');
-    if (!b) return;
-    state.prefs.deck = b.dataset.value;
+  $('#filters').addEventListener('change', (e) => {
+    const input = e.target.closest('input[data-group]');
+    if (!input) return;
+    const g = input.dataset.group;
+    if ('all' in input.dataset) {
+      state.sel[g] = input.checked ? new Set(state.opts[g].map((o) => o.value)) : new Set();
+    } else if (input.checked) {
+      state.sel[g].add(input.value);
+    } else {
+      state.sel[g].delete(input.value);
+    }
     savePrefs(); renderControls(); rebuild();
   });
 
-  $('#levelChips').addEventListener('click', (e) => {
-    const b = e.target.closest('.chip');
-    if (!b) return;
-    state.prefs.level = b.dataset.value;
-    savePrefs(); renderControls(); rebuild();
-  });
-
-  $('#examFilter').addEventListener('change', (e) => {
-    state.prefs.exam = e.target.value;
-    savePrefs(); rebuild();
+  $('#filters').addEventListener('toggle', () => {
+    state.prefs.filtersOpen = $('#filters').open;
+    savePrefs();
   });
 
   $('#statusFilter').addEventListener('change', (e) => {

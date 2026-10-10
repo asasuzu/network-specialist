@@ -45,13 +45,31 @@ button { cursor: pointer; }
 .seg button { border: 0; background: none; padding: 10px 0 8px; font-size: .95rem; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .seg button[aria-pressed="true"] { color: var(--ink); font-weight: 700; border-bottom-color: var(--ink); }
 
-.chips { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-.chips::-webkit-scrollbar { display: none; }
-.chip { flex: none; border: 0; background: none; padding: 6px 0; margin-right: 18px; font-size: .86rem; color: var(--muted); white-space: nowrap; border-bottom: 1px solid transparent; }
-.chip[aria-pressed="true"] { color: var(--ink); font-weight: 700; border-bottom-color: var(--ink); }
-.chip .n { margin-left: 3px; font-size: .78rem; font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* 絞り込み：年度・分野・段階のチェックボックス。選択肢は1つずつ枠で囲む */
+.filters { border: 1px solid var(--rule); margin-top: 12px; }
+.filters summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; padding: 10px 12px; cursor: pointer; list-style: none; background: var(--shade); }
+.filters summary::-webkit-details-marker { display: none; }
+.filters summary::before { content: "▸"; color: var(--muted); font-size: .8rem; }
+.filters[open] summary::before { content: "▾"; }
+.filters[open] summary { border-bottom: 1px solid var(--rule); }
+.f-title { font-weight: 700; font-size: .92rem; }
+.f-desc { flex: 1 1 12em; font-size: .78rem; color: var(--ink-2); min-width: 0; }
+.f-count { font-size: .84rem; color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.f-count b { font-size: 1.15rem; color: var(--shu); margin-right: 1px; }
+.f-count span { color: var(--muted); }
+.fgroup { border: 0; margin: 0; padding: 10px 12px 12px; min-width: 0; }
+.fgroup + .fgroup { border-top: 1px dotted var(--rule); }
+.fgroup legend { float: left; width: 100%; padding: 0; margin-bottom: 8px; font-size: .78rem; font-weight: 700; letter-spacing: .08em; color: var(--ink); }
+.opts { clear: both; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.opt { display: flex; align-items: center; gap: 7px; padding: 7px 9px; border: 1px solid var(--rule); border-radius: 2px; font-size: .84rem; line-height: 1.4; cursor: pointer; background: var(--paper); }
+@media (hover: hover) { .opt:hover { border-color: var(--ink-2); } }
+.opt:has(input:checked) { border-color: var(--ink); background: var(--shade); }
+.opt input { flex: none; width: 16px; height: 16px; margin: 0; accent-color: var(--ink); }
+.opt-label { flex: 1; min-width: 0; }
+.opt .n { flex: none; font-size: .74rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.opt-all { grid-column: 1 / -1; font-weight: 700; }
 
-.row { display: flex; gap: 8px 16px; align-items: center; flex-wrap: wrap; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+.row { display: flex; gap: 8px 16px; align-items: center; flex-wrap: wrap; justify-content: space-between; padding: 10px 0 10px; border-bottom: 1px solid var(--rule); }
 .row-end { display: flex; gap: 8px 14px; align-items: center; flex-wrap: wrap; }
 select { border: 1px solid var(--rule); background: var(--paper); border-radius: 2px; padding: 3px 6px; font-size: .84rem; }
 .toggle { display: inline-flex; gap: 5px; align-items: center; font-size: .84rem; color: var(--ink-2); white-space: nowrap; }
@@ -84,6 +102,11 @@ select { border: 1px solid var(--rule); background: var(--paper); border-radius:
 .judge button { padding: 11px 8px; border-radius: 2px; font-weight: 700; background: var(--paper); }
 .judge .unknown { border: 1px solid var(--shu); color: var(--shu); }
 .judge .known { border: 1px solid var(--ink); color: var(--ink); }
+.judge button { transition: background-color .12s, color .12s; }
+@media (hover: hover) {
+  .judge .unknown:hover { background: #f6d6d0; }
+  .judge .known:hover { background: #dededa; }
+}
 .judge .unknown[aria-pressed="true"] { background: var(--shu); color: #fff; }
 .judge .known[aria-pressed="true"] { background: var(--ink); color: #fff; }
 
@@ -137,3 +160,4 @@ select { border: 1px solid var(--rule); background: var(--paper); border-radius:
 .situation { margin-top: 12px; background: var(--shade); padding: 10px 12px; font-size: .86rem; line-height: 1.75; color: var(--ink-2); }
 .situation p { margin: 0; }
 .situation .situation-label { font-size: .74rem; font-weight: 700; color: var(--ink); letter-spacing: .08em; margin-bottom: 2px; }
+#deckGroup { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }

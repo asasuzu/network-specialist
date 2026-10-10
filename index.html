@@ -22,18 +22,23 @@
       <button type="button" data-mode="test">テスト</button>
       <button type="button" data-mode="read">読む</button>
     </div>
-    <div class="chips" id="deckChips" role="group" aria-label="分野"></div>
+    <details class="filters" id="filters" open>
+      <summary>
+        <span class="f-title">絞り込み</span>
+        <span class="f-desc" id="filterDesc"></span>
+        <span class="f-count" id="selCount" aria-live="polite"></span>
+      </summary>
+      <fieldset class="fgroup"><legend>年度</legend><div class="opts" id="examGroup"></div></fieldset>
+      <fieldset class="fgroup"><legend>分野</legend><div class="opts" id="deckGroup"></div></fieldset>
+      <fieldset class="fgroup"><legend>段階</legend><div class="opts" id="levelGroup"></div></fieldset>
+    </details>
     <div class="row">
-      <div class="chips" id="levelChips" role="group" aria-label="段階"></div>
       <div class="row-end">
-        <select id="examFilter" aria-label="年度で絞り込み">
-          <option value="all">全年度</option>
-        </select>
         <select id="statusFilter" aria-label="判定で絞り込み">
-          <option value="all">すべて</option>
-          <option value="none">未判定</option>
-          <option value="unknown">知らなかった</option>
-          <option value="known">知ってた</option>
+          <option value="all">判定：すべて</option>
+          <option value="none">判定：未判定</option>
+          <option value="unknown">判定：知らなかった</option>
+          <option value="known">判定：知ってた</option>
         </select>
         <label class="toggle"><input type="checkbox" id="shuffle"> シャッフル</label>
       </div>
