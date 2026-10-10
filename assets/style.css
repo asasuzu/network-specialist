@@ -10,6 +10,7 @@
   --shade: #f4f4f2;
   --shu: #c0392b;        /* 朱：重要語・答え */
   --shu-pale: #fbeeec;
+  --midori: #2e7d32;     /* 緑：知ってた */
   --serif: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", serif;
   --sans: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -38,6 +39,7 @@ button { cursor: pointer; }
 .stats { margin-top: 10px; font-size: .84rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .stats span + span::before { content: "／"; margin: 0 .5em; color: var(--rule); }
 .stats .unknown b { color: var(--shu); }
+.stats .known b { color: var(--midori); }
 
 /* 切り替え */
 .controls { padding-top: 6px; padding-bottom: 4px; display: grid; gap: 4px; }
@@ -85,7 +87,7 @@ select { border: 1px solid var(--rule); background: var(--paper); border-radius:
 .meta > span + span::before { content: "／"; margin: 0 .35em; color: var(--rule); }
 .meta .lv { color: var(--ink); font-weight: 700; }
 .meta .lv-過去問 { color: var(--shu); }
-.meta .done { color: var(--ink-2); }
+.meta .done { color: var(--midori); }
 .meta .done.unknown { color: var(--shu); }
 .group { margin-top: 2px; font-size: .78rem; color: var(--muted); }
 .q { margin: 10px 0 0; font-family: var(--serif); font-size: 1.2rem; line-height: 1.65; font-weight: 600; overflow-wrap: anywhere; }
@@ -101,14 +103,14 @@ select { border: 1px solid var(--rule); background: var(--paper); border-radius:
 .judge { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
 .judge button { padding: 11px 8px; border-radius: 2px; font-weight: 700; background: var(--paper); }
 .judge .unknown { border: 1px solid var(--shu); color: var(--shu); }
-.judge .known { border: 1px solid var(--ink); color: var(--ink); }
+.judge .known { border: 1px solid var(--midori); color: var(--midori); }
 .judge button { transition: background-color .12s, color .12s; }
 @media (hover: hover) {
   .judge .unknown:hover { background: #f6d6d0; }
   .judge .known:hover { background: #d9eedb; }
 }
 .judge .unknown[aria-pressed="true"] { background: var(--shu); color: #fff; }
-.judge .known[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.judge .known[aria-pressed="true"] { background: var(--midori); color: #fff; }
 
 .nav { display: flex; justify-content: space-between; gap: 10px; padding-top: 12px; border-top: 1px solid var(--rule); }
 .nav button { border: 0; background: none; padding: 8px 0; color: var(--ink-2); font-size: .9rem; }

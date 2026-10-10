@@ -226,7 +226,7 @@
     }
     const none = state.cards.length - known - unknown;
     $('#stats').innerHTML =
-      `<span>知ってた <b>${known}</b></span>` +
+      `<span class="known">知ってた <b>${known}</b></span>` +
       `<span class="unknown">知らなかった <b>${unknown}</b></span>` +
       `<span>未判定 <b>${none}</b></span>`;
   }
